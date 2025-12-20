@@ -1,0 +1,33 @@
+# Source files
+src/
+public/
+
+# Config files
+*.config.js
+*.config.ts
+tsconfig*.json
+eslint.config.js
+.eslintrc*
+
+# Development files
+.git/
+.gitignore
+.vscode/
+.idea/
+*.log
+node_modules/
+
+# Test files
+__tests__/
+*.test.*
+*.spec.*
+coverage/
+
+# Build artifacts (except dist)
+*.tsbuildinfo
+
+# Misc
+.DS_Store
+Thumbs.db
+*.local
+
