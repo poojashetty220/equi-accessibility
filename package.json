@@ -1,6 +1,6 @@
 {
   "name": "equiaccessible",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "type": "module",
   "license": "UNLICENSED",
   "description": "A comprehensive accessibility library for React applications with contrast modes, font scaling, screen reader support, and more.",
