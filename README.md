@@ -1,6 +1,5 @@
-# equi-accessible
+# equi-accessibility
 
-[![npm version](https://badge.fury.io/js/equi-accessible.svg)](https://www.npmjs.com/package/equi-accessible)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A comprehensive accessibility library for React applications. Provides contrast modes, font scaling, screen reader support, highlight features, and more - all with WCAG 2.2 AA compliance.
@@ -20,13 +19,13 @@ A comprehensive accessibility library for React applications. Provides contrast 
 
 ```bash
 # npm
-npm install equi-accessible
+npm install equi-accessibility
 
 # yarn
-yarn add equi-accessible
+yarn add equi-accessibility
 
 # pnpm
-pnpm add equi-accessible
+pnpm add equi-accessibility
 ```
 
 ## 🚀 Quick Start
@@ -35,7 +34,7 @@ pnpm add equi-accessible
 
 ```tsx
 import React, { useState } from 'react';
-import { AccessibilityPanel } from 'equi-accessible';
+import { AccessibilityPanel } from 'equi-accessibility';
 
 function App() {
   const [isOpen, setIsOpen] = useState(false);
@@ -71,8 +70,8 @@ export default App;
 ### With All Options
 
 ```tsx
-import { AccessibilityPanel } from 'equi-accessible';
-import type { PanelPosition, ThemeMode, EnabledOptions } from 'equi-accessible';
+import { AccessibilityPanel } from 'equi-accessibility';
+import type { PanelPosition, ThemeMode, EnabledOptions } from 'equi-accessibility';
 
 function App() {
   const [isOpen, setIsOpen] = useState(false);
@@ -143,14 +142,14 @@ import type {
   EnabledOptions,
   HighlightTitlesColors,
   HighlightLinksColors,
-} from 'equi-accessible';
+} from 'equi-accessibility';
 
 // Import default values
 import {
   defaultEnabledOptions,
   defaultHighlightTitlesColors,
   defaultHighlightLinksColors,
-} from 'equi-accessible';
+} from 'equi-accessibility';
 ```
 
 ## 📚 API Reference
@@ -223,7 +222,7 @@ import {
   announceToScreenReader,
   enableScreenReaderMode,
   disableScreenReaderMode,
-} from 'equi-accessible';
+} from 'equi-accessibility';
 
 // Initialize announcer on app start
 initializeAnnouncer({ speechSynthesis: false });
@@ -250,7 +249,7 @@ import {
   CheckboxOption,
   Dropdown,
   SectionHeading,
-} from 'equi-accessible';
+} from 'equi-accessibility';
 
 // Build your own custom accessibility panel
 function CustomPanel() {
@@ -301,7 +300,7 @@ The library uses Tailwind CSS classes. Make sure you have Tailwind CSS configure
 - Edge 90+
 
 ## 📄 License
-UNLICENSED
+MIT
 
 ---
 
@@ -500,9 +499,9 @@ The library provides a configurable save mode via the `saveMode` prop that deter
 ```
 
 **Save Button Features**:
-- ✅ Shows "Save Settings" when there are unsaved changes
-- ✅ Shows "All Changes Saved" when no pending changes
-- ✅ Disabled state when no changes to save
-- ✅ Loading spinner during save operation
-- ✅ Visual indicator (pulsing dot) for unsaved changes
-- ✅ Keyboard accessible
+- Shows "Save Settings" when there are unsaved changes
+- Shows "All Changes Saved" when no pending changes
+- Disabled state when no changes to save
+- Loading spinner during save operation
+- Visual indicator (pulsing dot) for unsaved changes
+- Keyboard accessible

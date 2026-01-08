@@ -21,8 +21,8 @@ export default defineConfig(({ mode }) => {
       build: {
         lib: {
           entry: resolve(__dirname, 'src/Accessibility/index.ts'),
-          name: 'EquiAccessible',
-          fileName: 'equiaccessible',
+          name: 'equi-accessibility',
+          fileName: 'equi-accessibility',
         },
         rollupOptions: {
           external: ['react', 'react-dom', 'react/jsx-runtime'],

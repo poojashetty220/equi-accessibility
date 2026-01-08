@@ -1,5 +1,5 @@
 /**
- * equi-accessible - Accessibility Library
+ * equi-accessibility - Accessibility Library
  * 
  * A comprehensive accessibility library for React applications.
  * Provides features like contrast modes, font scaling, screen reader support, and more.
