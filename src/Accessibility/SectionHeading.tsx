@@ -38,7 +38,7 @@ const SectionHeading: React.FC<SectionHeadingProps> = ({
     <h3 
       id={id}
       className={combineClasses(
-        `text-sm font-semibold uppercase tracking-wider ${
+        `text-sm font-semibold uppercase tracking-wider text-left ${
           isDarkMode ? 'text-white' : 'text-secondary-900'
         }`,
         className

@@ -39,6 +39,15 @@ import {
 import type { AccessibilityPanelProps, TextSize, LineHeight, LetterSpacing, WordSpacing, ContrastLevel, SaturationLevel, PanelPosition, ThemeMode, FontFamily, StorageHandler, EnabledOptions, HighlightTitlesColors, HighlightLinksColors } from './types';
 import { defaultEnabledOptions, defaultHighlightTitlesColors, defaultHighlightLinksColors } from './types';
 
+// Extend Window interface for motion observer, animation frame, and style observer
+declare global {
+  interface Window {
+    __accessibilityMotionObserver?: MutationObserver;
+    __accessibilityAnimationFrameId?: number;
+    __accessibilityStyleObserver?: MutationObserver;
+  }
+}
+
 /**
  * AccessibilityPanel Component
  * 
@@ -119,6 +128,7 @@ const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({
   const [hideImages, setHideImages] = useState<boolean>(false);
   const [highlightTitles, setHighlightTitles] = useState<boolean>(false);
   const [highlightLinks, setHighlightLinks] = useState<boolean>(false);
+  const [reduceMotion, setReduceMotion] = useState<boolean>(false);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [fontFamily, setFontFamily] = useState<FontFamily>('default');
   
@@ -915,6 +925,280 @@ const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({
     }
   };
 
+  /**
+   * Applies or removes animation stopping
+   * Disables CSS animations and transitions globally
+   * Stops GIFs and autoplay videos
+   * Uses aggressive approach to catch all animations including loading animations
+   */
+  const applyReduceMotion = (enabled: boolean): void => {
+    const styleId = 'accessibility-reduce-motion-style';
+    let styleElement = document.getElementById(styleId) as HTMLStyleElement | null;
+    
+    if (enabled) {
+      if (!styleElement) {
+        styleElement = document.createElement('style');
+        styleElement.id = styleId;
+        // Append at the end of head to ensure highest cascade priority
+        document.head.appendChild(styleElement);
+      }
+      
+      // Disable all animations and transitions globally with maximum specificity
+      // Includes accessibility panel itself to respect reduce motion
+      // Use comprehensive selectors targeting all elements and pseudo-elements
+      styleElement.textContent = `
+        /* Target all elements including accessibility panel - highest specificity */
+        html *,
+        html *::before,
+        html *::after,
+        body *,
+        body *::before,
+        body *::after {
+          animation: none !important;
+          animation-name: none !important;
+          animation-duration: 0s !important;
+          animation-delay: 0s !important;
+          animation-iteration-count: 1 !important;
+          animation-direction: normal !important;
+          animation-fill-mode: none !important;
+          animation-play-state: paused !important;
+          animation-timing-function: ease !important;
+          transition: none !important;
+          transition-property: none !important;
+          transition-duration: 0s !important;
+          transition-delay: 0s !important;
+          transition-timing-function: ease !important;
+          scroll-behavior: auto !important;
+          will-change: auto !important;
+        }
+        
+        /* Target elements with animation/transition in class names (e.g., Tailwind classes, loading spinners) */
+        [class*="animate"],
+        [class*="transition"],
+        [class*="animation"],
+        [class*="loading"],
+        [class*="spinner"],
+        [class*="pulse"],
+        [class*="fade"],
+        [class*="slide"],
+        [class*="spin"] {
+          animation: none !important;
+          transition: none !important;
+          animation-name: none !important;
+          transition-property: none !important;
+          animation-play-state: paused !important;
+        }
+        
+        /* Override inline styles and style attributes */
+        [style*="animation"],
+        [style*="transition"] {
+          animation: none !important;
+          transition: none !important;
+        }
+        
+        /* Stop keyframe animations */
+        @keyframes * {
+          from, to {
+            transform: none !important;
+            opacity: inherit !important;
+          }
+        }
+      `;
+      
+      // Rely entirely on CSS rules for stopping animations/transitions
+      // No JavaScript processing of existing elements - CSS handles it all
+      // This prevents any performance issues from querying/processing elements
+      
+      // Also watch for style attribute changes to catch inline style modifications
+      if (!window.__accessibilityStyleObserver) {
+        const styleObserver = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+              const target = mutation.target as HTMLElement;
+              if (!target.closest('[data-accessibility-panel]')) {
+                // Immediately stop any transitions/animations that were just added
+                const transition = target.style.transition || target.style.getPropertyValue('transition');
+                const animation = target.style.animation || target.style.getPropertyValue('animation');
+                if (transition && transition !== 'none') {
+                  target.style.setProperty('transition', 'none', 'important');
+                  target.style.setProperty('transition-property', 'none', 'important');
+                  target.style.setProperty('transition-duration', '0s', 'important');
+                }
+                if (animation && animation !== 'none') {
+                  target.style.setProperty('animation', 'none', 'important');
+                  target.style.setProperty('animation-name', 'none', 'important');
+                  target.style.setProperty('animation-duration', '0s', 'important');
+                }
+              }
+            }
+          });
+        });
+        
+        styleObserver.observe(document.body, {
+          attributes: true,
+          attributeFilter: ['style'],
+          subtree: true
+        });
+        
+        window.__accessibilityStyleObserver = styleObserver;
+      }
+      
+      // Process GIFs and videos asynchronously to avoid blocking
+      // Use setTimeout to defer processing and allow page to remain responsive
+      // Includes accessibility panel itself
+      setTimeout(() => {
+        // Stop GIFs by pausing animation
+        const images = document.querySelectorAll<HTMLImageElement>('img:not([aria-hidden="true"])');
+        images.forEach((img) => {
+          const src = img.src || img.getAttribute('src') || '';
+          if (src.toLowerCase().includes('.gif')) {
+            if (!img.dataset.originalSrc) {
+              img.dataset.originalSrc = img.src;
+            }
+            img.style.animationPlayState = 'paused';
+            img.dataset.gifPaused = 'true';
+          }
+        });
+        
+        // Stop autoplay videos
+        const videos = document.querySelectorAll<HTMLVideoElement>('video:not([aria-hidden="true"])');
+        videos.forEach((video) => {
+          if (video.autoplay || video.hasAttribute('autoplay')) {
+            if (!video.dataset.originalAutoplay) {
+              video.dataset.originalAutoplay = video.autoplay ? 'true' : 'false';
+            }
+            video.pause();
+            video.autoplay = false;
+            video.removeAttribute('autoplay');
+            video.dataset.motionReduced = 'true';
+          }
+        });
+      }, 0);
+      
+      // Handle dynamically added content via MutationObserver (lightweight)
+      if (!window.__accessibilityMotionObserver) {
+        let observerTimeout: ReturnType<typeof setTimeout> | null = null;
+        
+        const observer = new MutationObserver((mutations) => {
+          // Debounce to avoid processing too frequently
+          if (observerTimeout) {
+            clearTimeout(observerTimeout);
+          }
+          
+          observerTimeout = setTimeout(() => {
+            mutations.forEach((mutation) => {
+              mutation.addedNodes.forEach((node) => {
+                if (node.nodeType === Node.ELEMENT_NODE) {
+                  const element = node as HTMLElement;
+                  
+                  // CSS rules will handle animations/transitions automatically
+                  // Only handle inline styles that might override CSS
+                  const inlineTransition = element.style.transition || element.style.getPropertyValue('transition');
+                  const inlineAnimation = element.style.animation || element.style.getPropertyValue('animation');
+                  
+                  if (inlineTransition && inlineTransition !== 'none' && !inlineTransition.includes('none !important')) {
+                    element.style.setProperty('transition', 'none', 'important');
+                    element.style.setProperty('transition-property', 'none', 'important');
+                    element.style.setProperty('transition-duration', '0s', 'important');
+                  }
+                  if (inlineAnimation && inlineAnimation !== 'none' && !inlineAnimation.includes('none !important')) {
+                    element.style.setProperty('animation', 'none', 'important');
+                    element.style.setProperty('animation-name', 'none', 'important');
+                    element.style.setProperty('animation-duration', '0s', 'important');
+                  }
+                  
+                  // Handle GIFs and videos in new content
+                  const newImages = element.querySelectorAll<HTMLImageElement>('img');
+                  newImages.forEach((img) => {
+                    const src = img.src || img.getAttribute('src') || '';
+                    if (src.toLowerCase().includes('.gif')) {
+                      if (!img.dataset.originalSrc) {
+                        img.dataset.originalSrc = img.src;
+                      }
+                      img.style.animationPlayState = 'paused';
+                      img.dataset.gifPaused = 'true';
+                    }
+                  });
+                  
+                  const newVideos = element.querySelectorAll<HTMLVideoElement>('video');
+                  newVideos.forEach((video) => {
+                    if (video.autoplay || video.hasAttribute('autoplay')) {
+                      if (!video.dataset.originalAutoplay) {
+                        video.dataset.originalAutoplay = video.autoplay ? 'true' : 'false';
+                      }
+                      video.pause();
+                      video.autoplay = false;
+                      video.removeAttribute('autoplay');
+                      video.dataset.motionReduced = 'true';
+                    }
+                  });
+                }
+              });
+            });
+          }, 16); // Debounce to ~60fps max
+        });
+        
+        observer.observe(document.body, {
+          childList: true,
+          subtree: true
+        });
+        
+        window.__accessibilityMotionObserver = observer;
+      }
+    } else {
+      // Remove the style element
+      if (styleElement && styleElement.parentNode) {
+        styleElement.parentNode.removeChild(styleElement);
+      }
+      
+      // Restore inline styles on all elements (including accessibility panel)
+      const allElements = document.querySelectorAll('*');
+      allElements.forEach((element) => {
+        const htmlElement = element as HTMLElement;
+        if (htmlElement.dataset.originalAnimation !== undefined) {
+          htmlElement.style.animation = htmlElement.dataset.originalAnimation;
+          htmlElement.style.transition = htmlElement.dataset.originalTransition || '';
+          delete htmlElement.dataset.originalAnimation;
+          delete htmlElement.dataset.originalTransition;
+        }
+      });
+      
+      // Restore GIFs
+      const images = document.querySelectorAll<HTMLImageElement>('img[data-gif-paused="true"]');
+      images.forEach((img) => {
+        if (img.dataset.originalSrc) {
+          img.src = img.dataset.originalSrc;
+          delete img.dataset.originalSrc;
+        }
+        img.style.animationPlayState = '';
+        delete img.dataset.gifPaused;
+      });
+      
+      // Restore videos
+      const videos = document.querySelectorAll<HTMLVideoElement>('video[data-motion-reduced="true"]');
+      videos.forEach((video) => {
+        if (video.dataset.originalAutoplay === 'true') {
+          video.autoplay = true;
+          video.setAttribute('autoplay', '');
+        }
+        delete video.dataset.originalAutoplay;
+        delete video.dataset.motionReduced;
+      });
+      
+      // Disconnect style observer
+      if (window.__accessibilityStyleObserver) {
+        window.__accessibilityStyleObserver.disconnect();
+        delete window.__accessibilityStyleObserver;
+      }
+      
+      // Disconnect motion observer
+      if (window.__accessibilityMotionObserver) {
+        window.__accessibilityMotionObserver.disconnect();
+        delete window.__accessibilityMotionObserver;
+      }
+    }
+  };
+
   // ============================================================================
   // EFFECTS
   // ============================================================================
@@ -1471,6 +1755,14 @@ const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({
     announceChange(`Highlight links ${checked ? 'enabled' : 'disabled'}`);
   };
 
+  const handleReduceMotionChange = (checked: boolean): void => {
+    setReduceMotion(checked);
+    // Apply immediately regardless of save mode
+    applyReduceMotion(checked);
+    // Do NOT save to localStorage - this option always defaults to false
+    announceChange(`Reduce animation ${checked ? 'enabled' : 'disabled'}`);
+  };
+
   const handlePositionChange = (newPosition: PanelPosition): void => {
     setInternalPosition(newPosition);
     conditionalSave('accessibility-position', newPosition);
@@ -1581,6 +1873,7 @@ const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({
     setHideImages(false);
     setHighlightTitles(false);
     setHighlightLinks(false);
+    setReduceMotion(false);
     setFontFamily('default');
     setInternalPosition(null);
     setInternalTheme(null);
@@ -1613,6 +1906,9 @@ const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({
     // Remove highlight styles
     applyHighlightTitles(false);
     applyHighlightLinks(false);
+    
+    // Restore motion (disable reduce motion)
+    applyReduceMotion(false);
     
     // Reset contrast to default (low)
     applyContrast('low');
@@ -1799,6 +2095,8 @@ const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({
             onHideImagesChange={handleHideImagesChange}
             onHighlightTitlesChange={handleHighlightTitlesChange}
             onHighlightLinksChange={handleHighlightLinksChange}
+            reduceMotion={reduceMotion}
+            onReduceMotionChange={handleReduceMotionChange}
             handleKeyDown={handleKeyDown}
             classes={classes.options}
             isDarkMode={isDarkMode}

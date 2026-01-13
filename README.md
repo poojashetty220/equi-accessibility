@@ -1,5 +1,6 @@
 # equi-accessibility
 
+[![npm version](https://img.shields.io/npm/v/equi-accessibility.svg)](https://www.npmjs.com/package/equi-accessibility)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A comprehensive accessibility library for React applications. Provides contrast modes, font scaling, screen reader support, highlight features, and more - all with WCAG 2.2 AA compliance.
@@ -9,6 +10,7 @@ A comprehensive accessibility library for React applications. Provides contrast 
 - 🎨 **Contrast Modes**: Default, Low, High (WCAG AA), and Dark modes
 - 📝 **Typography Controls**: Font family, size, line height, letter & word spacing
 - 🔍 **Visual Aids**: Monochrome mode, hide images, highlight titles/links
+- 🎬 **Reduce Animation**: Disable CSS animations, transitions, GIFs, and autoplay videos
 - 🔊 **Screen Reader Support**: ARIA live regions, Web Speech API integration
 - 💾 **Persistence**: Auto-save or manual save modes with localStorage/sessionStorage
 - ⚡ **Lightweight**: < 50KB minified + gzipped
@@ -91,6 +93,7 @@ function App() {
     hideImages: true,
     highlightTitles: true,
     highlightLinks: true,
+    reduceMotion: true,
     screenReader: true,
     position: true,
     theme: true,
@@ -427,8 +430,39 @@ MIT
     hoverOutlineColor: '#0e7490'      // Darker outline on hover
   }}
 />
+```
 
-### 11. Font Family Selection
+### 11. Reduce Animation
+- Globally disables CSS animations and transitions for a calmer experience
+- Stops GIF animations by pausing and attempting to show first frame
+- Pauses and disables autoplay videos
+- Applies to all elements including the accessibility panel itself
+- Uses CSS rules with `!important` for maximum effectiveness
+- Handles dynamically added content via MutationObserver
+- **Not persisted**: Always defaults to disabled on page load (respects user's motion preferences)
+- Helps users with vestibular disorders, motion sensitivity, or those who prefer reduced motion
+- Complies with `prefers-reduced-motion` accessibility standards
+
+**Usage:**
+```tsx
+<AccessibilityPanel
+  isOpen={isOpen}
+  onClose={handleClose}
+  enabledOptions={{
+    reduceMotion: true,  // Enable Reduce Animation option
+  }}
+/>
+```
+
+**What it does:**
+- Sets `animation: none !important` and `transition: none !important` globally
+- Disables all animation properties (duration, delay, iteration-count, etc.)
+- Stops GIF animations
+- Pauses autoplay videos
+- Prevents scroll-behavior animations
+- Works with dynamically loaded content
+
+### 12. Font Family Selection
 - **Options**: Default, Sans-serif, Serif, Dyslexia-friendly
 - **Custom Fonts**: Applications can add custom fonts via props
 - **Global Application**: Font family applied globally via CSS variable
@@ -465,12 +499,12 @@ MIT
 
 See `/public/fonts/README.md` for detailed instructions on adding custom fonts.
 
-### 11. Reset All Settings
+### 13. Reset All Settings
 - Fixed button at bottom of panel
 - Resets all options to defaults including position, theme, and font family
 - Clears storage
 
-### 12. Save Mode (Auto/Manual)
+### 14. Save Mode (Auto/Manual)
 
 The library provides a configurable save mode via the `saveMode` prop that determines how user preferences are persisted:
 

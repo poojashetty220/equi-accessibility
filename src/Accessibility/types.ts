@@ -71,6 +71,8 @@ export interface EnabledOptions {
   highlightTitles?: boolean;
   /** Show highlight links toggle */
   highlightLinks?: boolean;
+  /** Show reduce motion toggle (disables animations and transitions) */
+  reduceMotion?: boolean;
   
   // Preferences
   /** Show screen reader mode toggle */
@@ -150,6 +152,7 @@ export const defaultEnabledOptions: Required<EnabledOptions> = {
   hideImages: true,
   highlightTitles: true,
   highlightLinks: true,
+  reduceMotion: true,
   screenReader: true,
   position: true,
   theme: true,
@@ -215,6 +218,7 @@ export interface AccessibilityOptionsClasses {
   hideImagesOption?: string;
   highlightTitlesOption?: string;
   highlightLinksOption?: string;
+  reduceMotionOption?: string;
   checkboxOptionContent?: string;
   checkbox?: string;
   checkboxIcon?: string;
@@ -405,6 +409,7 @@ export interface AccessibilityOptionsProps {
   hideImages: boolean;
   highlightTitles: boolean;
   highlightLinks: boolean;
+  reduceMotion: boolean;
   onTextSizeChange: (size: TextSize) => void;
   onLineHeightChange?: (level: LineHeight) => void;
   onLetterSpacingChange?: (level: LetterSpacing) => void;
@@ -416,6 +421,7 @@ export interface AccessibilityOptionsProps {
   onHideImagesChange: (checked: boolean) => void;
   onHighlightTitlesChange: (checked: boolean) => void;
   onHighlightLinksChange: (checked: boolean) => void;
+  onReduceMotionChange: (checked: boolean) => void;
   handleKeyDown: (e: React.KeyboardEvent, action: () => void) => void;
   classes?: AccessibilityOptionsClasses;
   isDarkMode?: boolean;

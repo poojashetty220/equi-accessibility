@@ -59,6 +59,7 @@ const AccessibilityOptions: React.FC<AccessibilityOptionsProps> = ({
   hideImages,
   highlightTitles,
   highlightLinks,
+  reduceMotion,
   onTextSizeChange,
   onLineHeightChange,
   onLetterSpacingChange,
@@ -70,6 +71,7 @@ const AccessibilityOptions: React.FC<AccessibilityOptionsProps> = ({
   onHideImagesChange,
   onHighlightTitlesChange,
   onHighlightLinksChange,
+  onReduceMotionChange,
   handleKeyDown,
   classes = {},
   isDarkMode = false,
@@ -90,7 +92,7 @@ const AccessibilityOptions: React.FC<AccessibilityOptionsProps> = ({
 
   // Check if any visual options are enabled
   const hasVisualOptions = enabledOptions.monochrome || enabledOptions.hideImages || 
-    enabledOptions.highlightTitles || enabledOptions.highlightLinks;
+    enabledOptions.highlightTitles || enabledOptions.highlightLinks || enabledOptions.reduceMotion;
 
   // Check if any preferences are enabled
   const hasPreferences = enabledOptions.screenReader;
@@ -112,7 +114,7 @@ const AccessibilityOptions: React.FC<AccessibilityOptionsProps> = ({
             Typography
           </SectionHeading>
           
-          <div className="space-y-4 pl-0">
+          <div className="grid grid-cols-2 gap-4">
             {/* Font Family Subsection */}
             {enabledOptions.fontFamily && (
               <section aria-labelledby="font-family-heading" className={combineClasses("space-y-3", classes.fontFamilySection)}>
@@ -358,6 +360,17 @@ const AccessibilityOptions: React.FC<AccessibilityOptionsProps> = ({
                 onKeyDown={handleKeyDown}
                 className={classes.highlightLinksOption}
                 ariaLabel={`Highlight links ${highlightLinks ? 'enabled' : 'disabled'}. When enabled, all links on the page will be visually highlighted.`}
+              />
+            )}
+            {enabledOptions.reduceMotion && (
+              <CheckboxOption
+                label="Reduce Animation"
+                checked={reduceMotion}
+                onChange={onReduceMotionChange}
+                isDarkMode={isDarkMode}
+                onKeyDown={handleKeyDown}
+                className={classes.reduceMotionOption}
+                ariaLabel={`Reduce animation ${reduceMotion ? 'enabled' : 'disabled'}. When enabled, all animations, transitions, GIFs, and autoplay videos will be reduced for a calmer experience.`}
               />
             )}
           </div>
